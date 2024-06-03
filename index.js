@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
 
 let persons = [
     { 
@@ -25,6 +26,18 @@ let persons = [
 ]
 
 app.use(express.json())
+morgan.token('body', function (req, res) { return JSON.stringify(req.body) })
+
+app.use(morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    tokens['body'](req, res)
+  ].join(' ')
+}))
 
 app.get('/info', (request, response) => {
     const now = new Date()
@@ -51,7 +64,7 @@ app.post('/api/persons', (request, response) => {
       error: 'content missing' 
     })
   }
-  console.log(persons.find(p => p.name === body.name))
+
   if (persons.find(p => p.name === body.name)) {
     return response.status(400).json({ 
       error: 'name must be unique' 
