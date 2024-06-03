@@ -28,6 +28,7 @@ let persons = [
 
 app.use(cors())
 app.use(express.json())
+
 morgan.token('body', function (req, res) { return JSON.stringify(req.body) })
 
 app.use(morgan(function (tokens, req, res) {
@@ -40,6 +41,8 @@ app.use(morgan(function (tokens, req, res) {
     tokens['body'](req, res)
   ].join(' ')
 }))
+
+app.use(express.static('dist'))
 
 app.get('/info', (request, response) => {
     const now = new Date()
