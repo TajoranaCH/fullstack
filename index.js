@@ -9,7 +9,7 @@ const Person = require('./models/person')
 app.use(cors())
 app.use(express.json())
 
-morgan.token('body', function (req, res) { return JSON.stringify(req.body) })
+morgan.token('body', function (req) { return JSON.stringify(req.body) })
 
 app.use(morgan(function (tokens, req, res) {
   return [
@@ -24,11 +24,11 @@ app.use(morgan(function (tokens, req, res) {
 
 app.use(express.static('dist'))
 
-const unknownEndpoint = (request, response) => {
+const unknownEndpoint = (_request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
 
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, _request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
@@ -40,18 +40,18 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (_request, response) => {
   Person.find({}).then(ps => {
     response.json(ps)
   })
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'content missing' 
+    return response.status(400).json({
+      error: 'content missing'
     })
   }
 
@@ -95,7 +95,7 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(r => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
